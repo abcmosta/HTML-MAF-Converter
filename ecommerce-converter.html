@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Commerce Product Data Converter</title>
+    <title>E-Commerce Product Data Converter - Cell Based</title>
     <style>
         * {
             margin: 0;
@@ -48,7 +48,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 0;
-            min-height: 600px;
+            min-height: 700px;
         }
 
         .panel {
@@ -82,19 +82,16 @@
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-family: 'Courier New', monospace;
-            font-size: 13px;
+            font-size: 12px;
             resize: vertical;
             transition: border-color 0.3s;
+            line-height: 1.4;
         }
 
         textarea:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        textarea.error {
-            border-color: #e74c3c;
         }
 
         .controls {
@@ -357,13 +354,34 @@
         input[type="range"] {
             width: 100%;
         }
+
+        .info-box {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: #004085;
+            line-height: 1.5;
+        }
+
+        .cell-counter {
+            font-size: 12px;
+            color: #666;
+            padding: 8px;
+            background: #f0f0f0;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🛍️ E-Commerce Product Data Converter</h1>
-            <p>Clean, normalize, and convert messy product data into structured HTML bullet points</p>
+            <h1>🛍️ E-Commerce Cell-Based Data Converter</h1>
+            <p>Process thousands of product cells - Each cell in → Each cell out (Excel/Sheets compatible)</p>
         </div>
 
         <div class="main-content">
@@ -371,7 +389,11 @@
             <div class="panel">
                 <div class="panel-title">
                     <span class="icon">📋</span>
-                    Paste Raw Product Data
+                    Paste Raw Product Cells
+                </div>
+
+                <div class="info-box">
+                    💡 <strong>Cell-Based Mode:</strong> Paste data from Excel/Sheets columns. Each row = 1 cell. Each cell will be processed independently.
                 </div>
 
                 <div class="options-section">
@@ -415,14 +437,14 @@
                     </div>
                     <div class="slider-group">
                         <div class="slider-label">
-                            <span>Max Bullets</span>
+                            <span>Max Bullets per Cell</span>
                             <span id="maxBulletsValue">7</span>
                         </div>
                         <input type="range" id="maxBullets" min="3" max="15" value="7">
                     </div>
                     <div class="slider-group">
                         <div class="slider-label">
-                            <span>Min Bullets</span>
+                            <span>Min Bullets per Cell</span>
                             <span id="minBulletsValue">3</span>
                         </div>
                         <input type="range" id="minBullets" min="1" max="10" value="3">
@@ -430,34 +452,37 @@
                 </div>
 
                 <div class="controls">
-                    <button class="btn-primary" onclick="convertData()">🚀 Convert</button>
+                    <button class="btn-primary" onclick="convertAllCells()">🚀 Convert All Cells</button>
                     <button class="btn-secondary btn-small" onclick="clearInput()">Clear</button>
                 </div>
 
-                <textarea id="input" placeholder="Paste your raw product data here...&#10;&#10;Examples:&#10;• Feature 1, Feature 2; Feature 3&#10;[&quot;Power: 2200W&quot;, &quot;Capacity: 1.7L&quot;]&#10;&lt;li&gt;Text&lt;/li&gt;&#10;- Item | Item | Item"></textarea>
+                <div class="cell-counter">
+                    📊 Cells to process: <span id="inputCellCount">0</span>
+                </div>
+
+                <textarea id="input" placeholder="Paste product descriptions from Excel/Sheets&#10;(each row = 1 cell)&#10;&#10;Paste directly from columns - one cell per line"></textarea>
             </div>
 
             <!-- OUTPUT PANEL -->
             <div class="panel">
                 <div class="panel-title">
                     <span class="icon">✨</span>
-                    Cleaned Product Data
+                    Converted Product Cells
                 </div>
 
                 <div class="output-format">
                     <button class="format-btn active" data-format="html" onclick="switchFormat('html')">📄 HTML</button>
                     <button class="format-btn" data-format="text" onclick="switchFormat('text')">📝 Plain Text</button>
-                    <button class="format-btn" data-format="json" onclick="switchFormat('json')">⚙️ JSON</button>
                 </div>
 
                 <div class="stats">
                     <div class="stat-item">
-                        <div class="stat-label">Bullets</div>
-                        <div class="stat-value" id="bulletCount">0</div>
+                        <div class="stat-label">Cells Processed</div>
+                        <div class="stat-value" id="cellsProcessed">0</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-label">Characters</div>
-                        <div class="stat-value" id="charCount">0</div>
+                        <div class="stat-label">Avg Bullets/Cell</div>
+                        <div class="stat-value" id="avgBullets">0</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-label">Status</div>
@@ -467,13 +492,14 @@
 
                 <div class="validation-alerts" id="alerts"></div>
 
-                <textarea id="output" placeholder="Converted output will appear here..." readonly></textarea>
+                <textarea id="output" placeholder="Converted cells will appear here (ready to paste back to Excel/Sheets)..." readonly></textarea>
 
                 <div class="bottom-controls">
-                    <button class="btn-primary btn-small" onclick="copyToClipboard()">📋 Copy</button>
+                    <button class="btn-primary btn-small" onclick="copyToClipboard()">📋 Copy All</button>
+                    <button class="btn-secondary btn-small" onclick="downloadOutput()">⬇️ Download</button>
                 </div>
 
-                <div class="keyboard-hint">💡 Tip: Paste raw data and press Ctrl+Enter to convert</div>
+                <div class="keyboard-hint">💡 Tip: Ctrl+Enter to convert | Each output cell ready to paste back to Excel/Sheets</div>
             </div>
         </div>
     </div>
@@ -510,11 +536,16 @@
         };
 
         let currentFormat = 'html';
-        let lastOutput = null;
+        let lastResults = [];
 
         // ===== UI LISTENERS =====
         document.getElementById('input').addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 'Enter') convertData();
+            if (e.ctrlKey && e.key === 'Enter') convertAllCells();
+        });
+
+        document.getElementById('input').addEventListener('input', (e) => {
+            const cells = e.target.value.trim().split('\n').filter(c => c.trim().length > 0);
+            document.getElementById('inputCellCount').textContent = cells.length;
         });
 
         document.getElementById('minBulletLength').addEventListener('input', (e) => {
@@ -553,9 +584,7 @@
             // Normalize encoding issues
             text = text.replace(/[^\x00-\x7F]/g, (char) => {
                 const code = char.charCodeAt(0);
-                // Keep common extended characters
                 if (code > 127 && code < 256) return char;
-                // Replace weird Unicode
                 if (/[\u0100-\u017F]|[\u0180-\u024F]/.test(char)) return char;
                 if (/[^\w\s\-.,;:!?'"\u00C0-\u024F]/.test(char)) return '';
                 return char;
@@ -568,27 +597,20 @@
         function removeEmojiAndNoise(text) {
             if (!document.getElementById('removeEmoji').checked) return text;
 
-            // Remove emojis (comprehensive Unicode range)
             text = text.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{27BF}]/gu, '');
             text = text.replace(/[\u{1F900}-\u{1F9FF}]/gu, '');
 
             if (document.getElementById('removeNoise').checked) {
-                // Remove null, undefined, NaN, [object Object]
                 text = text.replace(/\b(null|undefined|NaN)\b/gi, '');
                 text = text.replace(/\[object\s+Object\]/gi, '');
-
-                // Remove excess symbols
                 text = text.replace(/[\|]{4,}/g, ' ');
                 text = text.replace(/[;]{3,}/g, ' ');
                 text = text.replace(/[-]{4,}/g, ' ');
                 text = text.replace(/[!]{3,}/g, '!');
                 text = text.replace(/[.]{3,}/g, '.');
-
-                // Remove junk patterns
                 text = text.replace(/^[^\w\s"']*|[^\w\s"']*$/gm, '');
             }
 
-            // Remove invisible characters
             text = text.replace(/[\u200B\u200C\u200D\uFEFF]/g, '');
             text = text.replace(/[\u00A0]+/g, ' ');
 
@@ -597,28 +619,15 @@
 
         // ===== STEP 3: SEPARATOR NORMALIZATION =====
         function normalizeSeparators(text) {
-            // Convert all separators to newlines
-            // First, handle HTML entities
             text = text.replace(/&bull;|•/g, '\n');
-
-            // Handle various bullet styles
             text = text.replace(/^[\s]*[-•●]\s+/gm, '\n');
             text = text.replace(/^[\s]*[0-9]+[.)]\s+/gm, '\n');
             text = text.replace(/^[\s]*[a-z][.)]\s+/gm, '\n');
-
-            // Handle special patterns
             text = text.replace(/[;|]/g, '\n');
             text = text.replace(/\/(?=\s*[A-Z])/g, '\n');
-
-            // Tab to newline
             text = text.replace(/\t+/g, '\n');
-
-            // Handle multiple newlines
             text = text.replace(/\n{2,}/g, '\n');
-
-            // Period + capital letter = new bullet
             text = text.replace(/([.!?])\s+(?=[A-Z])/g, '$1\n');
-
             return text;
         }
 
@@ -627,24 +636,15 @@
             return text
                 .split('\n')
                 .map(line => {
-                    // Trim
                     line = line.trim();
-
-                    // Remove leading garbage
                     line = line.replace(/^[-•●●\s*]+\s*/, '');
                     line = line.replace(/^[0-9]+[.)]\s+/, '');
                     line = line.replace(/^[a-z][.)]\s+/, '');
-
-                    // Remove trailing clutter
                     line = line.replace(/[;:,•●-]+\s*$/, '');
-
-                    // Fix double spaces
                     line = line.replace(/\s{2,}/g, ' ');
-
                     return line;
                 })
                 .filter(line => {
-                    // Remove fragments that are too short or non-informational
                     if (line.length < CONFIG.minBulletLength) return false;
                     if (/^(and|or|the|a|an|as|by|for|from|in|of|to|with)$/i.test(line)) return false;
                     return line.length > 0;
@@ -658,7 +658,6 @@
             for (let i = 0; i < fragments.length; i++) {
                 let current = fragments[i];
 
-                // Check if should merge with next
                 if (i < fragments.length - 1) {
                     const next = fragments[i + 1];
                     const endsIncompletely = !current.match(/[.!?]$/);
@@ -671,7 +670,6 @@
                     }
                 }
 
-                // Ensure ends with period
                 if (current && !current.match(/[.!?]$/)) {
                     current = current + '.';
                 }
@@ -684,14 +682,10 @@
 
         // ===== STEP 6: SPECIAL CASE HANDLING =====
         function handleSpecialCases(text) {
-            // Handle quoted arrays
             text = text.replace(/['"]([^'"]+)['"]/g, (match, content) => {
                 return content.split(',').map(s => s.trim()).join('\n');
             });
-
-            // Handle key-value patterns
             text = text.replace(/([A-Z][a-z]+):\s*([^;,\n]+)[;,]/g, '$1: $2\n');
-
             return text;
         }
 
@@ -712,7 +706,6 @@
         function formatBullets(bullets, format) {
             bullets = bullets.filter(b => b.length > 0);
 
-            // Ensure proper count
             if (bullets.length > CONFIG.maxBullets) {
                 bullets = bullets.slice(0, CONFIG.maxBullets);
             }
@@ -731,121 +724,126 @@
                     return `- ${text}`;
                 }).join('\n');
             }
-
-            if (format === 'json') {
-                return JSON.stringify({
-                    bullets: bullets.map(b => b.endsWith('.') ? b : b + '.'),
-                    count: bullets.length,
-                    format: 'product_features'
-                }, null, 2);
-            }
         }
 
         // ===== STEP 9: VALIDATION =====
         function validateBullets(bullets) {
             const alerts = [];
-
             const count = bullets.length;
+
             if (count > CONFIG.maxBullets) {
                 alerts.push({
                     type: 'warning',
-                    text: `⚠️ Too many bullets (${count}/${CONFIG.maxBullets}). Trimmed to ${CONFIG.maxBullets}.`
+                    text: `⚠️ Trimmed to ${CONFIG.maxBullets} bullets (${count} detected)`
                 });
             }
 
             if (count < CONFIG.minBullets) {
                 alerts.push({
                     type: 'warning',
-                    text: `⚠️ Too few bullets (${count}/${CONFIG.minBullets}). May not meet requirements.`
-                });
-            }
-
-            // Check for duplicates
-            const unique = new Set(bullets.map(b => b.toLowerCase()));
-            if (unique.size < bullets.length) {
-                alerts.push({
-                    type: 'info',
-                    text: `ℹ️ Removed ${bullets.length - unique.size} duplicate bullet(s).`
-                });
-            }
-
-            // Check for broken phrases
-            const brokenPhrases = bullets.filter(b => /^(and|or|the|a|in|of)$/i.test(b));
-            if (brokenPhrases.length > 0) {
-                alerts.push({
-                    type: 'warning',
-                    text: `⚠️ Found ${brokenPhrases.length} incomplete phrase(s).`
-                });
-            }
-
-            if (count >= CONFIG.minBullets && count <= CONFIG.maxBullets && unique.size === bullets.length) {
-                alerts.push({
-                    type: 'success',
-                    text: `✅ Valid! ${count} clean bullets ready.`
+                    text: `⚠️ Only ${count} bullets (min: ${CONFIG.minBullets})`
                 });
             }
 
             return alerts;
         }
 
-        // ===== MAIN CONVERSION FUNCTION =====
-        function convertData() {
+        // ===== PROCESS SINGLE CELL =====
+        function processCell(rawText) {
+            if (!rawText || !rawText.trim()) {
+                return { bullets: [], alerts: [], valid: false };
+            }
+
+            try {
+                let text = rawText;
+                text = preCleanup(text);
+                text = removeEmojiAndNoise(text);
+                text = handleSpecialCases(text);
+                text = normalizeSeparators(text);
+
+                let fragments = cleanFragments(text);
+                fragments = smartSentenceStructuring(fragments);
+                fragments = deduplicateBullets(fragments);
+
+                if (fragments.length > CONFIG.maxBullets) {
+                    fragments = fragments.slice(0, CONFIG.maxBullets);
+                }
+
+                const alerts = validateBullets(fragments);
+                const valid = fragments.length >= CONFIG.minBullets && fragments.length <= CONFIG.maxBullets;
+
+                return { bullets: fragments, alerts, valid };
+            } catch (error) {
+                return { bullets: [], alerts: [{ type: 'error', text: 'Error: ' + error.message }], valid: false };
+            }
+        }
+
+        // ===== CONVERT ALL CELLS =====
+        function convertAllCells() {
             const input = document.getElementById('input').value;
             if (!input.trim()) {
                 addAlert('No input provided', 'error');
                 return;
             }
 
-            try {
-                let text = input;
+            const inputCells = input.split('\n').filter(c => c.trim().length > 0);
+            const results = [];
 
-                // 1. Pre-cleanup
-                text = preCleanup(text);
+            inputCells.forEach((cell, index) => {
+                const result = processCell(cell);
+                results.push(result);
+            });
 
-                // 2. Emoji & Noise removal
-                text = removeEmojiAndNoise(text);
+            lastResults = results;
+            renderOutput();
+        }
 
-                // 3. Separator normalization
-                text = handleSpecialCases(text);
-                text = normalizeSeparators(text);
+        // ===== RENDER OUTPUT =====
+        function renderOutput() {
+            const outputLines = [];
+            let totalBullets = 0;
+            let validCells = 0;
+            let allAlerts = [];
 
-                // 4. Fragment cleaning
-                let fragments = cleanFragments(text);
+            lastResults.forEach((result, index) => {
+                const formatted = formatBullets(result.bullets, currentFormat);
+                outputLines.push(formatted);
+                totalBullets += result.bullets.length;
+                if (result.valid) validCells++;
+                allAlerts = allAlerts.concat(result.alerts);
+            });
 
-                // 5. Smart sentence structuring
-                fragments = smartSentenceStructuring(fragments);
+            document.getElementById('output').value = outputLines.join('\n\n');
+            
+            document.getElementById('cellsProcessed').textContent = lastResults.length;
+            const avgBullets = lastResults.length > 0 
+                ? (totalBullets / lastResults.length).toFixed(1) 
+                : 0;
+            document.getElementById('avgBullets').textContent = avgBullets;
+            
+            const status = validCells === lastResults.length ? '✅' : '⚠️';
+            document.getElementById('status').textContent = status;
 
-                // 7. Deduplication
-                fragments = deduplicateBullets(fragments);
-
-                // Limit to max bullets before validation
-                if (fragments.length > CONFIG.maxBullets) {
-                    fragments = fragments.slice(0, CONFIG.maxBullets);
+            // Show summary alerts
+            const uniqueAlerts = [];
+            if (allAlerts.length > 0) {
+                const warningCount = allAlerts.filter(a => a.type === 'warning').length;
+                if (warningCount > 0) {
+                    uniqueAlerts.push({
+                        type: 'warning',
+                        text: `⚠️ ${warningCount} cell(s) have issues`
+                    });
                 }
-
-                // 8. Format output
-                const output = formatBullets(fragments, currentFormat);
-                lastOutput = output;
-
-                // Display output
-                document.getElementById('output').value = output;
-
-                // Update stats
-                document.getElementById('bulletCount').textContent = fragments.length;
-                document.getElementById('charCount').textContent = output.length;
-
-                // 9. Validate and show alerts
-                const alerts = validateBullets(fragments);
-                displayAlerts(alerts);
-
-                // Update status
-                const status = fragments.length >= CONFIG.minBullets ? '✅' : '⚠️';
-                document.getElementById('status').textContent = status;
-
-            } catch (error) {
-                addAlert('Error: ' + error.message, 'error');
-                console.error(error);
             }
+
+            if (validCells > 0) {
+                uniqueAlerts.push({
+                    type: 'success',
+                    text: `✅ ${validCells}/${lastResults.length} cells valid`
+                });
+            }
+
+            displayAlerts(uniqueAlerts);
         }
 
         // ===== HELPER FUNCTIONS =====
@@ -885,15 +883,13 @@
         function switchFormat(format) {
             currentFormat = format;
             
-            // Update button states
             document.querySelectorAll('.format-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             document.querySelector(`[data-format="${format}"]`).classList.add('active');
 
-            // Re-convert with new format
-            if (lastOutput) {
-                convertData();
+            if (lastResults.length > 0) {
+                renderOutput();
             }
         }
 
@@ -902,26 +898,42 @@
             if (!output.value) return;
 
             navigator.clipboard.writeText(output.value).then(() => {
-                showCopyFeedback();
+                showCopyFeedback(`✅ Copied! (${lastResults.length} cells)`);
             });
         }
 
-        function showCopyFeedback() {
+        function showCopyFeedback(message) {
             const feedback = document.createElement('div');
             feedback.className = 'copy-feedback';
-            feedback.textContent = '✅ Copied to clipboard!';
+            feedback.textContent = message;
             document.body.appendChild(feedback);
             setTimeout(() => feedback.remove(), 3000);
+        }
+
+        function downloadOutput() {
+            const output = document.getElementById('output').value;
+            if (!output) return;
+
+            const ext = currentFormat === 'html' ? 'html' : 'txt';
+            const filename = `product-cells.${ext}`;
+            const blob = new Blob([output], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
         function clearInput() {
             document.getElementById('input').value = '';
             document.getElementById('output').value = '';
             document.getElementById('alerts').innerHTML = '';
-            document.getElementById('bulletCount').textContent = '0';
-            document.getElementById('charCount').textContent = '0';
+            document.getElementById('inputCellCount').textContent = '0';
+            document.getElementById('cellsProcessed').textContent = '0';
+            document.getElementById('avgBullets').textContent = '0';
             document.getElementById('status').textContent = '—';
-            lastOutput = null;
+            lastResults = [];
         }
 
         // ===== KEYBOARD SHORTCUTS =====

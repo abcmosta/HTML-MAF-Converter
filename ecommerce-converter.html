@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Commerce Product Data Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.95em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            min-height: 600px;
+        }
+
+        .panel {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .panel:last-child {
+            border-right: none;
+        }
+
+        .panel-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .icon {
+            font-size: 1.2em;
+        }
+
+        textarea {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea.error {
+            border-color: #e74c3c;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 12px;
+            flex: none;
+        }
+
+        .options-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .options-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input[type="checkbox"] {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            font-size: 13px;
+            user-select: none;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f0f7ff;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .output-format {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .format-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 13px;
+        }
+
+        .format-btn.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .validation-alerts {
+            margin: 15px 0;
+            max-height: 150px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .alert {
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            border-left: 4px solid;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+            color: #0c5460;
+        }
+
+        .bottom-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .panel {
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+            }
+
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .copy-feedback {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            animation: slideInRight 0.3s ease-out;
+            z-index: 1000;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .keyboard-hint {
+            font-size: 11px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .advanced-options {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .slider-group {
+            margin-bottom: 10px;
+        }
+
+        .slider-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛍️ E-Commerce Product Data Converter</h1>
+            <p>Clean, normalize, and convert messy product data into structured HTML bullet points</p>
+        </div>
+
+        <div class="main-content">
+            <!-- INPUT PANEL -->
+            <div class="panel">
+                <div class="panel-title">
+                    <span class="icon">📋</span>
+                    Paste Raw Product Data
+                </div>
+
+                <div class="options-section">
+                    <div class="options-title">🔧 Cleaning Options</div>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="removeHTML" checked>
+                            <label for="removeHTML">Remove HTML Tags</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="decodeEntities" checked>
+                            <label for="decodeEntities">Decode Entities</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="removeEmoji" checked>
+                            <label for="removeEmoji">Remove Emoji</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="removeNoise" checked>
+                            <label for="removeNoise">Remove Noise</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="normalizeSpaces" checked>
+                            <label for="normalizeSpaces">Normalize Spaces</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="deduplicateBullets" checked>
+                            <label for="deduplicateBullets">Deduplicate</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="advanced-options">
+                    <div class="options-title">⚙️ Advanced Settings</div>
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span>Min Bullet Length</span>
+                            <span id="minLengthValue">5</span>
+                        </div>
+                        <input type="range" id="minBulletLength" min="3" max="20" value="5">
+                    </div>
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span>Max Bullets</span>
+                            <span id="maxBulletsValue">7</span>
+                        </div>
+                        <input type="range" id="maxBullets" min="3" max="15" value="7">
+                    </div>
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span>Min Bullets</span>
+                            <span id="minBulletsValue">3</span>
+                        </div>
+                        <input type="range" id="minBullets" min="1" max="10" value="3">
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn-primary" onclick="convertData()">🚀 Convert</button>
+                    <button class="btn-secondary btn-small" onclick="clearInput()">Clear</button>
+                </div>
+
+                <textarea id="input" placeholder="Paste your raw product data here...&#10;&#10;Examples:&#10;• Feature 1, Feature 2; Feature 3&#10;[&quot;Power: 2200W&quot;, &quot;Capacity: 1.7L&quot;]&#10;&lt;li&gt;Text&lt;/li&gt;&#10;- Item | Item | Item"></textarea>
+            </div>
+
+            <!-- OUTPUT PANEL -->
+            <div class="panel">
+                <div class="panel-title">
+                    <span class="icon">✨</span>
+                    Cleaned Product Data
+                </div>
+
+                <div class="output-format">
+                    <button class="format-btn active" data-format="html" onclick="switchFormat('html')">📄 HTML</button>
+                    <button class="format-btn" data-format="text" onclick="switchFormat('text')">📝 Plain Text</button>
+                    <button class="format-btn" data-format="json" onclick="switchFormat('json')">⚙️ JSON</button>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-label">Bullets</div>
+                        <div class="stat-value" id="bulletCount">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Characters</div>
+                        <div class="stat-value" id="charCount">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Status</div>
+                        <div class="stat-value" id="status">—</div>
+                    </div>
+                </div>
+
+                <div class="validation-alerts" id="alerts"></div>
+
+                <textarea id="output" placeholder="Converted output will appear here..." readonly></textarea>
+
+                <div class="bottom-controls">
+                    <button class="btn-primary btn-small" onclick="copyToClipboard()">📋 Copy</button>
+                </div>
+
+                <div class="keyboard-hint">💡 Tip: Paste raw data and press Ctrl+Enter to convert</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== CONFIGURATION =====
+        const CONFIG = {
+            minBulletLength: 5,
+            maxBullets: 7,
+            minBullets: 3,
+            htmlEntityMap: {
+                '&amp;': '&',
+                '&lt;': '<',
+                '&gt;': '>',
+                '&quot;': '"',
+                '&apos;': "'",
+                '&#39;': "'",
+                '&nbsp;': ' ',
+                '&ldquo;': '"',
+                '&rdquo;': '"',
+                '&lsquo;': "'",
+                '&rsquo;': "'",
+                '&mdash;': '—',
+                '&ndash;': '–',
+                '&hellip;': '...',
+                '&bull;': '•',
+                '&copy;': '©',
+                '&reg;': '®',
+                '&trade;': '™',
+                '&deg;': '°',
+                '&times;': '×',
+                '&divide;': '÷'
+            }
+        };
+
+        let currentFormat = 'html';
+        let lastOutput = null;
+
+        // ===== UI LISTENERS =====
+        document.getElementById('input').addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') convertData();
+        });
+
+        document.getElementById('minBulletLength').addEventListener('input', (e) => {
+            CONFIG.minBulletLength = parseInt(e.target.value);
+            document.getElementById('minLengthValue').textContent = e.target.value;
+        });
+
+        document.getElementById('maxBullets').addEventListener('input', (e) => {
+            CONFIG.maxBullets = parseInt(e.target.value);
+            document.getElementById('maxBulletsValue').textContent = e.target.value;
+        });
+
+        document.getElementById('minBullets').addEventListener('input', (e) => {
+            CONFIG.minBullets = parseInt(e.target.value);
+            document.getElementById('minBulletsValue').textContent = e.target.value;
+        });
+
+        // ===== STEP 1: RAW TEXT PRE-CLEANUP =====
+        function preCleanup(text) {
+            if (!text) return '';
+
+            // Remove HTML tags
+            if (document.getElementById('removeHTML').checked) {
+                text = text.replace(/<[^>]+>/g, '');
+            }
+
+            // Decode HTML entities
+            if (document.getElementById('decodeEntities').checked) {
+                text = decodeHTMLEntities(text);
+            }
+
+            // Remove array wrappers and quotes
+            text = text.replace(/^\[[\s"']*|[\s"']*\]$/g, '');
+            text = text.replace(/^["']|["']$/g, '');
+
+            // Normalize encoding issues
+            text = text.replace(/[^\x00-\x7F]/g, (char) => {
+                const code = char.charCodeAt(0);
+                // Keep common extended characters
+                if (code > 127 && code < 256) return char;
+                // Replace weird Unicode
+                if (/[\u0100-\u017F]|[\u0180-\u024F]/.test(char)) return char;
+                if (/[^\w\s\-.,;:!?'"\u00C0-\u024F]/.test(char)) return '';
+                return char;
+            });
+
+            return text;
+        }
+
+        // ===== STEP 2: EMOJI & NOISE REMOVAL =====
+        function removeEmojiAndNoise(text) {
+            if (!document.getElementById('removeEmoji').checked) return text;
+
+            // Remove emojis (comprehensive Unicode range)
+            text = text.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{27BF}]/gu, '');
+            text = text.replace(/[\u{1F900}-\u{1F9FF}]/gu, '');
+
+            if (document.getElementById('removeNoise').checked) {
+                // Remove null, undefined, NaN, [object Object]
+                text = text.replace(/\b(null|undefined|NaN)\b/gi, '');
+                text = text.replace(/\[object\s+Object\]/gi, '');
+
+                // Remove excess symbols
+                text = text.replace(/[\|]{4,}/g, ' ');
+                text = text.replace(/[;]{3,}/g, ' ');
+                text = text.replace(/[-]{4,}/g, ' ');
+                text = text.replace(/[!]{3,}/g, '!');
+                text = text.replace(/[.]{3,}/g, '.');
+
+                // Remove junk patterns
+                text = text.replace(/^[^\w\s"']*|[^\w\s"']*$/gm, '');
+            }
+
+            // Remove invisible characters
+            text = text.replace(/[\u200B\u200C\u200D\uFEFF]/g, '');
+            text = text.replace(/[\u00A0]+/g, ' ');
+
+            return text;
+        }
+
+        // ===== STEP 3: SEPARATOR NORMALIZATION =====
+        function normalizeSeparators(text) {
+            // Convert all separators to newlines
+            // First, handle HTML entities
+            text = text.replace(/&bull;|•/g, '\n');
+
+            // Handle various bullet styles
+            text = text.replace(/^[\s]*[-•●]\s+/gm, '\n');
+            text = text.replace(/^[\s]*[0-9]+[.)]\s+/gm, '\n');
+            text = text.replace(/^[\s]*[a-z][.)]\s+/gm, '\n');
+
+            // Handle special patterns
+            text = text.replace(/[;|]/g, '\n');
+            text = text.replace(/\/(?=\s*[A-Z])/g, '\n');
+
+            // Tab to newline
+            text = text.replace(/\t+/g, '\n');
+
+            // Handle multiple newlines
+            text = text.replace(/\n{2,}/g, '\n');
+
+            // Period + capital letter = new bullet
+            text = text.replace(/([.!?])\s+(?=[A-Z])/g, '$1\n');
+
+            return text;
+        }
+
+        // ===== STEP 4: FRAGMENT CLEANING =====
+        function cleanFragments(text) {
+            return text
+                .split('\n')
+                .map(line => {
+                    // Trim
+                    line = line.trim();
+
+                    // Remove leading garbage
+                    line = line.replace(/^[-•●●\s*]+\s*/, '');
+                    line = line.replace(/^[0-9]+[.)]\s+/, '');
+                    line = line.replace(/^[a-z][.)]\s+/, '');
+
+                    // Remove trailing clutter
+                    line = line.replace(/[;:,•●-]+\s*$/, '');
+
+                    // Fix double spaces
+                    line = line.replace(/\s{2,}/g, ' ');
+
+                    return line;
+                })
+                .filter(line => {
+                    // Remove fragments that are too short or non-informational
+                    if (line.length < CONFIG.minBulletLength) return false;
+                    if (/^(and|or|the|a|an|as|by|for|from|in|of|to|with)$/i.test(line)) return false;
+                    return line.length > 0;
+                });
+        }
+
+        // ===== STEP 5: SMART SENTENCE STRUCTURING =====
+        function smartSentenceStructuring(fragments) {
+            const result = [];
+            
+            for (let i = 0; i < fragments.length; i++) {
+                let current = fragments[i];
+
+                // Check if should merge with next
+                if (i < fragments.length - 1) {
+                    const next = fragments[i + 1];
+                    const endsIncompletely = !current.match(/[.!?]$/);
+                    const startsLowercase = /^[a-z]/.test(next);
+                    const isContinuation = /^(and|with|for|by|or|that|which)\b/i.test(next);
+
+                    if (endsIncompletely && (startsLowercase || isContinuation)) {
+                        current = current + ' ' + next;
+                        fragments.splice(i + 1, 1);
+                    }
+                }
+
+                // Ensure ends with period
+                if (current && !current.match(/[.!?]$/)) {
+                    current = current + '.';
+                }
+
+                result.push(current);
+            }
+
+            return result;
+        }
+
+        // ===== STEP 6: SPECIAL CASE HANDLING =====
+        function handleSpecialCases(text) {
+            // Handle quoted arrays
+            text = text.replace(/['"]([^'"]+)['"]/g, (match, content) => {
+                return content.split(',').map(s => s.trim()).join('\n');
+            });
+
+            // Handle key-value patterns
+            text = text.replace(/([A-Z][a-z]+):\s*([^;,\n]+)[;,]/g, '$1: $2\n');
+
+            return text;
+        }
+
+        // ===== STEP 7: DEDUPLICATION =====
+        function deduplicateBullets(bullets) {
+            if (!document.getElementById('deduplicateBullets').checked) return bullets;
+
+            const seen = new Set();
+            return bullets.filter(bullet => {
+                const normalized = bullet.toLowerCase().trim();
+                if (seen.has(normalized)) return false;
+                seen.add(normalized);
+                return true;
+            });
+        }
+
+        // ===== STEP 8: FORMAT OUTPUT =====
+        function formatBullets(bullets, format) {
+            bullets = bullets.filter(b => b.length > 0);
+
+            // Ensure proper count
+            if (bullets.length > CONFIG.maxBullets) {
+                bullets = bullets.slice(0, CONFIG.maxBullets);
+            }
+
+            if (format === 'html') {
+                const items = bullets.map(b => {
+                    const text = b.endsWith('.') ? b : b + '.';
+                    return `<li>${escapeHTML(text)}</li>`;
+                }).join('\n');
+                return `<ul>\n${items}\n</ul>`;
+            }
+
+            if (format === 'text') {
+                return bullets.map(b => {
+                    const text = b.endsWith('.') ? b : b + '.';
+                    return `- ${text}`;
+                }).join('\n');
+            }
+
+            if (format === 'json') {
+                return JSON.stringify({
+                    bullets: bullets.map(b => b.endsWith('.') ? b : b + '.'),
+                    count: bullets.length,
+                    format: 'product_features'
+                }, null, 2);
+            }
+        }
+
+        // ===== STEP 9: VALIDATION =====
+        function validateBullets(bullets) {
+            const alerts = [];
+
+            const count = bullets.length;
+            if (count > CONFIG.maxBullets) {
+                alerts.push({
+                    type: 'warning',
+                    text: `⚠️ Too many bullets (${count}/${CONFIG.maxBullets}). Trimmed to ${CONFIG.maxBullets}.`
+                });
+            }
+
+            if (count < CONFIG.minBullets) {
+                alerts.push({
+                    type: 'warning',
+                    text: `⚠️ Too few bullets (${count}/${CONFIG.minBullets}). May not meet requirements.`
+                });
+            }
+
+            // Check for duplicates
+            const unique = new Set(bullets.map(b => b.toLowerCase()));
+            if (unique.size < bullets.length) {
+                alerts.push({
+                    type: 'info',
+                    text: `ℹ️ Removed ${bullets.length - unique.size} duplicate bullet(s).`
+                });
+            }
+
+            // Check for broken phrases
+            const brokenPhrases = bullets.filter(b => /^(and|or|the|a|in|of)$/i.test(b));
+            if (brokenPhrases.length > 0) {
+                alerts.push({
+                    type: 'warning',
+                    text: `⚠️ Found ${brokenPhrases.length} incomplete phrase(s).`
+                });
+            }
+
+            if (count >= CONFIG.minBullets && count <= CONFIG.maxBullets && unique.size === bullets.length) {
+                alerts.push({
+                    type: 'success',
+                    text: `✅ Valid! ${count} clean bullets ready.`
+                });
+            }
+
+            return alerts;
+        }
+
+        // ===== MAIN CONVERSION FUNCTION =====
+        function convertData() {
+            const input = document.getElementById('input').value;
+            if (!input.trim()) {
+                addAlert('No input provided', 'error');
+                return;
+            }
+
+            try {
+                let text = input;
+
+                // 1. Pre-cleanup
+                text = preCleanup(text);
+
+                // 2. Emoji & Noise removal
+                text = removeEmojiAndNoise(text);
+
+                // 3. Separator normalization
+                text = handleSpecialCases(text);
+                text = normalizeSeparators(text);
+
+                // 4. Fragment cleaning
+                let fragments = cleanFragments(text);
+
+                // 5. Smart sentence structuring
+                fragments = smartSentenceStructuring(fragments);
+
+                // 7. Deduplication
+                fragments = deduplicateBullets(fragments);
+
+                // Limit to max bullets before validation
+                if (fragments.length > CONFIG.maxBullets) {
+                    fragments = fragments.slice(0, CONFIG.maxBullets);
+                }
+
+                // 8. Format output
+                const output = formatBullets(fragments, currentFormat);
+                lastOutput = output;
+
+                // Display output
+                document.getElementById('output').value = output;
+
+                // Update stats
+                document.getElementById('bulletCount').textContent = fragments.length;
+                document.getElementById('charCount').textContent = output.length;
+
+                // 9. Validate and show alerts
+                const alerts = validateBullets(fragments);
+                displayAlerts(alerts);
+
+                // Update status
+                const status = fragments.length >= CONFIG.minBullets ? '✅' : '⚠️';
+                document.getElementById('status').textContent = status;
+
+            } catch (error) {
+                addAlert('Error: ' + error.message, 'error');
+                console.error(error);
+            }
+        }
+
+        // ===== HELPER FUNCTIONS =====
+        function decodeHTMLEntities(text) {
+            const textarea = document.createElement('textarea');
+            textarea.innerHTML = text;
+            text = textarea.value;
+
+            for (const [entity, char] of Object.entries(CONFIG.htmlEntityMap)) {
+                text = text.replace(new RegExp(entity, 'g'), char);
+            }
+
+            return text;
+        }
+
+        function escapeHTML(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function displayAlerts(alerts) {
+            const container = document.getElementById('alerts');
+            container.innerHTML = '';
+            alerts.forEach(alert => {
+                const div = document.createElement('div');
+                div.className = `alert alert-${alert.type}`;
+                div.textContent = alert.text;
+                container.appendChild(div);
+            });
+        }
+
+        function addAlert(text, type = 'info') {
+            displayAlerts([{ text, type }]);
+        }
+
+        function switchFormat(format) {
+            currentFormat = format;
+            
+            // Update button states
+            document.querySelectorAll('.format-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-format="${format}"]`).classList.add('active');
+
+            // Re-convert with new format
+            if (lastOutput) {
+                convertData();
+            }
+        }
+
+        function copyToClipboard() {
+            const output = document.getElementById('output');
+            if (!output.value) return;
+
+            navigator.clipboard.writeText(output.value).then(() => {
+                showCopyFeedback();
+            });
+        }
+
+        function showCopyFeedback() {
+            const feedback = document.createElement('div');
+            feedback.className = 'copy-feedback';
+            feedback.textContent = '✅ Copied to clipboard!';
+            document.body.appendChild(feedback);
+            setTimeout(() => feedback.remove(), 3000);
+        }
+
+        function clearInput() {
+            document.getElementById('input').value = '';
+            document.getElementById('output').value = '';
+            document.getElementById('alerts').innerHTML = '';
+            document.getElementById('bulletCount').textContent = '0';
+            document.getElementById('charCount').textContent = '0';
+            document.getElementById('status').textContent = '—';
+            lastOutput = null;
+        }
+
+        // ===== KEYBOARD SHORTCUTS =====
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                copyToClipboard();
+            }
+        });
+    </script>
+</body>
+</html>
